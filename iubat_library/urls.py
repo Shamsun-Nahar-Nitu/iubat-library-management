@@ -5,14 +5,15 @@ from django.conf.urls.static import static
 
 from books.views import home
 from users.views import user_login, user_logout, dashboard
-from borrowing.views import borrow_request  # <-- Must be here
+from borrowing.views import borrow_request, issue_book  # Added issue_book
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', user_login, name='login'),
     path('logout/', user_logout, name='logout'),
     path('dashboard/', dashboard, name='dashboard'),
-    path('borrow/<int:book_id>/', borrow_request, name='borrow_request'),  # <-- Must be here
+    path('borrow/<int:book_id>/', borrow_request, name='borrow_request'),
+    path('librarian/issue/', issue_book, name='issue_book'),  # Librarian issue page
     path('', home, name='home'),
 ]
 
