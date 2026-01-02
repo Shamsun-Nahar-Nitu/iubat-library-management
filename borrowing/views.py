@@ -30,6 +30,11 @@ def borrow_request(request, book_id):
         messages.error(request, 'Limit Reached: You can only have 3 books at a time.')
         return redirect('home')
 
+    # Check if pending request already exists for this user and book
+    if Borrowing.objects.filter(user=request.user, book=book, status='pending').exists():
+        messages.error(request, 'You already have a pending request for this book.')
+        return redirect('home')
+
     Borrowing.objects.create(
         user=request.user,
         book=book,
@@ -63,9 +68,8 @@ def issue_book(request):
             messages.error(request, 'User or Book not found.')
             return redirect('issue_book')
 
-        try:
-            borrowing = Borrowing.objects.get(user=user, book=book, status='pending')
-        except Borrowing.DoesNotExist:
+        borrowing = Borrowing.objects.filter(user=user, book=book, status='pending').first()
+        if not borrowing:
             messages.error(request, 'No pending request for this user and book.')
             return redirect('issue_book')
 
@@ -101,9 +105,8 @@ def return_book(request):
             messages.error(request, 'Book not found.')
             return redirect('return_book')
 
-        try:
-            borrowing = Borrowing.objects.get(book=book, status='issued')
-        except Borrowing.DoesNotExist:
+        borrowing = Borrowing.objects.filter(book=book, status='issued').first()
+        if not borrowing:
             messages.error(request, 'No issued copy of this book found.')
             return redirect('return_book')
 
