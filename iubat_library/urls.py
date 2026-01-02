@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 
 from books.views import home
 from users.views import user_login, user_logout, dashboard
-from borrowing.views import borrow_request, issue_book  # Added issue_book
+from borrowing.views import borrow_request, issue_book, return_book  # Added return_book
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -13,7 +13,8 @@ urlpatterns = [
     path('logout/', user_logout, name='logout'),
     path('dashboard/', dashboard, name='dashboard'),
     path('borrow/<int:book_id>/', borrow_request, name='borrow_request'),
-    path('librarian/issue/', issue_book, name='issue_book'),  # Librarian issue page
+    path('librarian/issue/', issue_book, name='issue_book'),
+    path('librarian/return/', return_book, name='return_book'),  # New return page
     path('', home, name='home'),
 ]
 

@@ -1,4 +1,4 @@
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import models
@@ -7,12 +7,10 @@ from datetime import timedelta
 
 from books.models import Book
 from .models import Borrowing
-from users.models import CustomUser  # Needed for user lookup
-
+from users.models import CustomUser
 
 @login_required
 def borrow_request(request, book_id):
-    """Student/Faculty borrow request"""
     if request.user.role not in ['student', 'faculty']:
         messages.error(request, 'Only students and faculty can request books.')
         return redirect('home')
@@ -44,10 +42,8 @@ def borrow_request(request, book_id):
     messages.success(request, 'Request Pending: Your borrow request has been submitted successfully.')
     return redirect('home')
 
-
 @login_required
 def issue_book(request):
-    """Librarian issues a pending request"""
     if request.user.role != 'librarian':
         messages.error(request, 'Access denied. Only librarians can issue books.')
         return redirect('home')
@@ -87,3 +83,48 @@ def issue_book(request):
         'pending_requests': pending_requests,
     }
     return render(request, 'borrowing/issue_book.html', context)
+
+@login_required
+def return_book(request):
+    if request.user.role != 'librarian':
+        messages.error(request, 'Access denied. Only librarians can process returns.')
+        return redirect('home')
+
+    issued_books = Borrowing.objects.filter(status='issued').select_related('user', 'book').order_by('due_date')
+
+    if request.method == 'POST':
+        book_isbn = request.POST.get('book_isbn', '').strip()
+
+        try:
+            book = Book.objects.get(isbn=book_isbn)
+        except Book.DoesNotExist:
+            messages.error(request, 'Book not found.')
+            return redirect('return_book')
+
+        try:
+            borrowing = Borrowing.objects.get(book=book, status='issued')
+        except Borrowing.DoesNotExist:
+            messages.error(request, 'No issued copy of this book found.')
+            return redirect('return_book')
+
+        # Calculate fine if overdue
+        today = timezone.now().date()
+        if borrowing.due_date and borrowing.due_date < today:
+            days_overdue = (today - borrowing.due_date).days
+            fine_per_day = 10  # Customize
+            borrowing.fine = days_overdue * fine_per_day
+
+        borrowing.status = 'returned'
+        borrowing.return_date = timezone.now()
+        borrowing.save()
+
+        book.available += 1
+        book.save()
+
+        messages.success(request, f'Return Successful: "{book.title}" returned by {borrowing.user.username}. Fine: ৳{borrowing.fine}')
+        return redirect('return_book')
+
+    context = {
+        'issued_books': issued_books,
+    }
+    return render(request, 'borrowing/return_book.html', context)

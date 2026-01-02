@@ -13,17 +13,17 @@ class CustomUser(AbstractUser):
     student_id = models.CharField(max_length=20, blank=True, null=True, unique=True)
     phone = models.CharField(max_length=15, blank=True, null=True)
 
-    # Fix reverse accessor clashes
+    # Fix reverse accessor clashes with Django's built-in User model
     groups = models.ManyToManyField(
         'auth.Group',
-        related_name='customuser_set',
+        related_name='customuser_groups',  # Unique related_name
         blank=True,
         help_text='The groups this user belongs to.',
         verbose_name='groups',
     )
     user_permissions = models.ManyToManyField(
         'auth.Permission',
-        related_name='customuser_set',
+        related_name='customuser_permissions',  # Unique related_name
         blank=True,
         help_text='Specific permissions for this user.',
         verbose_name='user permissions',
