@@ -3,54 +3,106 @@ from django.contrib.auth import authenticate, login, logout as auth_logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from borrowing.models import Borrowing
+from .models import CustomUser
 
 def user_login(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        role = request.POST.get('role')
+        username = request.POST['username']
+        password = request.POST['password']
+        role = request.POST['role']
 
         user = authenticate(request, username=username, password=password)
-        if user is not None:
-            if user.is_active and user.role.lower() == role.lower():
-                login(request, user)
-                messages.success(request, f'Welcome, {user.get_role_display()}!')
-
-                # Role-based redirect (case-insensitive)
-                if user.role.lower() == 'admin':
-                    return redirect('admin:index')
-                elif user.role.lower() == 'librarian':
-                    return redirect('home')
-                else:
-                    return redirect('dashboard')
-            else:
-                messages.error(request, 'Invalid role selected or account inactive.')
+        if user is not None and user.is_active and user.role == role:
+            login(request, user)
+            messages.success(request, f'Welcome, {user.get_role_display()}!')
+            return redirect('home')
         else:
-            messages.error(request, 'Invalid username or password.')
+            messages.error(request, 'Invalid Credentials')
+            return redirect('login')
 
     return render(request, 'users/login.html')
 
-
-@login_required
 def user_logout(request):
     auth_logout(request)
-    messages.success(request, 'You have been logged out successfully.')
+    messages.success(request, 'You have been logged out.')
     return redirect('home')
-
 
 @login_required
 def dashboard(request):
     if request.user.role not in ['student', 'faculty']:
-        messages.error(request, 'Access denied. This dashboard is for students and faculty only.')
+        messages.error(request, 'Access denied.')
         return redirect('home')
 
-    # Get all borrowing records for the current user (pending + issued)
-    borrowings = Borrowing.objects.filter(
+    current = Borrowing.objects.filter(
         user=request.user,
         status__in=['pending', 'issued']
-    ).select_related('book').order_by('-borrow_date')
+    ).select_related('book')
+
+    history = Borrowing.objects.filter(
+        user=request.user,
+        status='returned'
+    ).select_related('book').order_by('-return_date')
 
     context = {
-        'borrowings': borrowings,
+        'current': current,
+        'history': history,
     }
     return render(request, 'users/dashboard.html', context)
+
+@login_required
+def create_user(request):
+    if request.user.role != 'admin':
+        messages.error(request, 'Access denied. Only admins can create users.')
+        return redirect('home')
+
+    if request.method == 'POST':
+        username = request.POST['username']
+        email = request.POST['email']
+        role = request.POST['role']
+        student_id = request.POST.get('student_id', '')
+        password = request.POST['password']
+
+        try:
+            user = CustomUser.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                role=role,
+                student_id=student_id if role == 'student' else ''
+            )
+            user.is_active = True
+            user.save()
+            messages.success(request, f'Account Created Successfully for {username}')
+            return redirect('home')
+        except Exception as e:
+            messages.error(request, f'Error creating user: {str(e)}')
+            return redirect('create_user')
+
+    return render(request, 'users/create_user.html')
+
+@login_required
+def update_user(request):
+    if request.user.role != 'admin':
+        messages.error(request, 'Access denied. Only admins can update users.')
+        return redirect('home')
+
+    users = CustomUser.objects.all().order_by('username')
+
+    if request.method == 'POST':
+        user_id = request.POST['user_id']
+        new_role = request.POST['role']
+        is_active = 'is_active' in request.POST
+
+        try:
+            user = CustomUser.objects.get(id=user_id)
+            user.role = new_role
+            user.is_active = is_active
+            user.save()
+            messages.success(request, f'User Details Updated for {user.username}')
+            return redirect('update_user')
+        except CustomUser.DoesNotExist:
+            messages.error(request, 'User not found.')
+            return redirect('update_user')
+
+    context = {'users': users}
+    return render(request, 'users/update_user.html', context)

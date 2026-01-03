@@ -112,9 +112,10 @@ def return_book(request):
 
         # Calculate fine if overdue
         today = timezone.now().date()
-        if borrowing.due_date and borrowing.due_date < today:
-            days_overdue = (today - borrowing.due_date).days
-            fine_per_day = 10  # Customize
+        due = borrowing.due_date.date() if borrowing.due_date else None
+        if due and due < today:
+            days_overdue = (today - due).days
+            fine_per_day = 10
             borrowing.fine = days_overdue * fine_per_day
 
         borrowing.status = 'returned'

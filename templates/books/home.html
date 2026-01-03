@@ -34,6 +34,11 @@
                     <a href="{% url 'issue_book' %}">Librarian Panel - Issue Books</a>
                     | <a href="{% url 'return_book' %}">Librarian Panel - Return Books</a>
                 {% endif %}
+                {% if request.user.role == 'admin' %}
+                    {% if request.user.role == 'student' or request.user.role == 'faculty' or request.user.role == 'librarian' %} | {% endif %}
+                    <a href="{% url 'create_user' %}">Create User</a>
+                    | <a href="{% url 'update_user' %}">Update User</a>
+                {% endif %}
             </div>
         {% endif %}
 
