@@ -3,64 +3,57 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import models
 from django.utils import timezone
-from datetime import timedelta
+from django.http import HttpResponse
+from openpyxl import Workbook
+from openpyxl.styles import Font
+from datetime import timedelta, datetime
 from django.core.mail import send_mail
 from django.conf import settings
-
 from books.models import Book
 from .models import Borrowing
 from users.models import CustomUser
+
 
 @login_required
 def borrow_request(request, book_id):
     if request.user.role not in ['student', 'faculty']:
         messages.error(request, 'Only students and faculty can request books.')
         return redirect('home')
-
     book = get_object_or_404(Book, id=book_id)
-
     if book.available <= 0:
         messages.error(request, 'This book is currently not available.')
         return redirect('home')
-
     current_count = Borrowing.objects.filter(
         user=request.user,
         status__in=['pending', 'issued']
     ).count()
-
     if current_count >= 3:
         messages.error(request, 'Limit Reached: You can only have 3 books at a time.')
         return redirect('home')
-
     # Check if pending request already exists for this user and book
     if Borrowing.objects.filter(user=request.user, book=book, status='pending').exists():
         messages.error(request, 'You already have a pending request for this book.')
         return redirect('home')
-
     Borrowing.objects.create(
         user=request.user,
         book=book,
         status='pending'
     )
-
     book.available -= 1
     book.save()
-
     messages.success(request, 'Request Pending: Your borrow request has been submitted successfully.')
     return redirect('home')
+
 
 @login_required
 def issue_book(request):
     if request.user.role != 'librarian':
         messages.error(request, 'Access denied. Only librarians can issue books.')
         return redirect('home')
-
     pending_requests = Borrowing.objects.filter(status='pending').select_related('user', 'book').order_by('borrow_date')
-
     if request.method == 'POST':
         user_input = request.POST.get('user_id', '').strip()
         book_isbn = request.POST.get('book_isbn', '').strip()
-
         try:
             user = CustomUser.objects.get(
                 models.Q(username=user_input) | models.Q(student_id=user_input)
@@ -69,49 +62,40 @@ def issue_book(request):
         except (CustomUser.DoesNotExist, Book.DoesNotExist):
             messages.error(request, 'User or Book not found.')
             return redirect('issue_book')
-
         borrowing = Borrowing.objects.filter(user=user, book=book, status='pending').first()
         if not borrowing:
             messages.error(request, 'No pending request for this user and book.')
             return redirect('issue_book')
-
         borrowing.due_date = timezone.now() + timedelta(days=14)
         borrowing.status = 'issued'
         borrowing.save()
-
         book.available -= 1
         book.save()
-
         messages.success(request, f'Book Issued Successfully to {user.username}. Due: {borrowing.due_date.date()}')
         return redirect('issue_book')
-
     context = {
         'pending_requests': pending_requests,
     }
     return render(request, 'borrowing/issue_book.html', context)
+
 
 @login_required
 def return_book(request):
     if request.user.role != 'librarian':
         messages.error(request, 'Access denied. Only librarians can process returns.')
         return redirect('home')
-
     issued_books = Borrowing.objects.filter(status='issued').select_related('user', 'book').order_by('due_date')
-
     if request.method == 'POST':
         book_isbn = request.POST.get('book_isbn', '').strip()
-
         try:
             book = Book.objects.get(isbn=book_isbn)
         except Book.DoesNotExist:
             messages.error(request, 'Book not found.')
             return redirect('return_book')
-
         borrowing = Borrowing.objects.filter(book=book, status='issued').first()
         if not borrowing:
             messages.error(request, 'No issued copy of this book found.')
             return redirect('return_book')
-
         # Calculate fine if overdue
         today = timezone.now().date()
         due = borrowing.due_date.date() if borrowing.due_date else None
@@ -119,36 +103,29 @@ def return_book(request):
             days_overdue = (today - due).days
             fine_per_day = 10
             borrowing.fine = days_overdue * fine_per_day
-
         borrowing.status = 'returned'
         borrowing.return_date = timezone.now()
         borrowing.save()
-
         book.available += 1
         book.save()
-
-        messages.success(request, f'Return Successful: "{book.title}" returned by {borrowing.user.username}. Fine: ৳{borrowing.fine}')
+        messages.success(request, f'Return Successful: "{book.title}" returned by {borrowing.user.username}. Fine: ৳{borrowing.fine or 0}')
         return redirect('return_book')
-
     context = {
         'issued_books': issued_books,
     }
     return render(request, 'borrowing/return_book.html', context)
 
-# ---------------- NEW VIEW: Update Stock ---------------- #
 
+# ---------------- NEW VIEW: Update Stock ---------------- #
 @login_required
 def update_stock(request):
     if request.user.role != 'librarian':
         messages.error(request, 'Access denied. Only librarians can update stock.')
         return redirect('home')
-
     books = Book.objects.all().order_by('title')
-
     if request.method == 'POST':
         book_id = request.POST['book_id']
         new_quantity = int(request.POST['new_quantity'])
-
         try:
             book = Book.objects.get(id=book_id)
             old_qty = book.available
@@ -159,24 +136,21 @@ def update_stock(request):
         except Book.DoesNotExist:
             messages.error(request, 'Book not found.')
             return redirect('update_stock')
-
     context = {'books': books}
     return render(request, 'borrowing/update_stock.html', context)
 
-# ---------------- NEW VIEW: Send Overdue Notifications ---------------- #
 
+# ---------------- NEW VIEW: Send Overdue Notifications ---------------- #
 @login_required
 def send_overdue_notification(request):
     if request.user.role != 'librarian':
         messages.error(request, 'Access denied. Only librarians can send notifications.')
         return redirect('home')
-
     today = timezone.now().date()
     overdue = Borrowing.objects.filter(
         status='issued',
         due_date__lt=today
     ).select_related('user', 'book')
-
     if request.method == 'POST':
         action = request.POST.get('action')
         if action == 'send_all':
@@ -187,7 +161,7 @@ def send_overdue_notification(request):
                     f'Dear {b.user.username},\n\n'
                     f'The book "{b.book.title}" is overdue.\n'
                     f'Due Date: {b.due_date}\n'
-                    f'Fine: ৳{b.fine}\n\n'
+                    f'Fine: ৳{b.fine or 0}\n\n'
                     'Please return it soon.\n\nThank you.'
                 )
                 send_mail(
@@ -208,7 +182,7 @@ def send_overdue_notification(request):
                     f'Dear {b.user.username},\n\n'
                     f'The book "{b.book.title}" is overdue.\n'
                     f'Due Date: {b.due_date}\n'
-                    f'Fine: ৳{b.fine}\n\n'
+                    f'Fine: ৳{b.fine or 0}\n\n'
                     'Please return it soon.\n\nThank you.'
                 )
                 send_mail(
@@ -221,8 +195,81 @@ def send_overdue_notification(request):
                 messages.success(request, f'Reminder sent to {b.user.username}.')
             except Borrowing.DoesNotExist:
                 messages.error(request, 'Invalid borrowing record.')
-
         return redirect('send_overdue_notification')
-
     context = {'overdue': overdue}
     return render(request, 'borrowing/send_overdue_notification.html', context)
+
+
+# ---------------- NEW VIEW: Generate Report (Excel) ---------------- #
+@login_required
+def generate_report(request):
+    if request.user.role not in ['admin', 'librarian']:
+        messages.error(request, 'Access denied.')
+        return redirect('home')
+
+    if request.method == 'POST':
+        start_date = request.POST['start_date']
+        end_date = request.POST['end_date']
+        report_type = request.POST['report_type']
+
+        start = datetime.strptime(start_date, '%Y-%m-%d').date()
+        end = datetime.strptime(end_date, '%Y-%m-%d').date()
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = f"{report_type.capitalize()} Report"
+
+        # Report metadata
+        ws.append(['Report Type', report_type.capitalize()])
+        ws.append(['Date Range', f'{start} to {end}'])
+        ws.append(['Generated On', datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
+        ws.append([])  # blank row
+
+        if report_type == 'borrowing':
+            ws.append(['User', 'Book', 'Borrow Date', 'Due Date', 'Return Date', 'Status', 'Fine'])
+            borrowings = Borrowing.objects.filter(
+                borrow_date__date__range=[start, end]
+            ).select_related('user', 'book')
+
+            for b in borrowings:
+                ws.append([
+                    b.user.username,
+                    b.book.title,
+                    b.borrow_date.date() if b.borrow_date else '',
+                    b.due_date.date() if b.due_date else '',
+                    b.return_date.date() if b.return_date else '',
+                    b.get_status_display(),
+                    b.fine or 0
+                ])
+
+        elif report_type == 'stock':
+            ws.append(['Book Title', 'Author', 'ISBN', 'Category', 'Available Copies', 'Price'])
+            books = Book.objects.all().select_related('category')
+
+            for book in books:
+                ws.append([
+                    book.title,
+                    book.author,
+                    book.isbn,
+                    book.category.name if book.category else '',
+                    book.available,
+                    book.price or 0
+                ])
+
+        # Style the header row (row 5 after metadata)
+        header_row = ws[5]
+        for cell in header_row:
+            cell.font = Font(bold=True)
+
+        # Create response
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = (
+            f'attachment; filename=library_{report_type}_report_{start}_{end}.xlsx'
+        )
+        wb.save(response)
+        return response
+
+    # GET request - show form
+    return render(request, 'borrowing/generate_report.html')
