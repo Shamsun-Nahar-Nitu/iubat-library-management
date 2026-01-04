@@ -152,3 +152,7 @@ AUTH_USER_MODEL = 'users.CustomUser'
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+# Email settings for development (prints emails to console)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'library@iubat.edu'

@@ -36,6 +36,7 @@
                     <a href="{% url 'issue_book' %}">Librarian Panel - Issue Books</a>
                     | <a href="{% url 'return_book' %}">Librarian Panel - Return Books</a>
                     | <a href="{% url 'update_stock' %}">Update Stock</a>
+                    | <a href="{% url 'send_overdue_notification' %}">Send Overdue Reminders</a>
                 {% endif %}
                 
                 {% if request.user.role == 'admin' %}

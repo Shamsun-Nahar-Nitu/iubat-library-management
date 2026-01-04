@@ -4,6 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.db import models
 from django.utils import timezone
 from datetime import timedelta
+from django.core.mail import send_mail
+from django.conf import settings
 
 from books.models import Book
 from .models import Borrowing
@@ -160,3 +162,67 @@ def update_stock(request):
 
     context = {'books': books}
     return render(request, 'borrowing/update_stock.html', context)
+
+# ---------------- NEW VIEW: Send Overdue Notifications ---------------- #
+
+@login_required
+def send_overdue_notification(request):
+    if request.user.role != 'librarian':
+        messages.error(request, 'Access denied. Only librarians can send notifications.')
+        return redirect('home')
+
+    today = timezone.now().date()
+    overdue = Borrowing.objects.filter(
+        status='issued',
+        due_date__lt=today
+    ).select_related('user', 'book')
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'send_all':
+            count = 0
+            for b in overdue:
+                subject = 'Overdue Book Reminder - IUBAT Library'
+                message = (
+                    f'Dear {b.user.username},\n\n'
+                    f'The book "{b.book.title}" is overdue.\n'
+                    f'Due Date: {b.due_date}\n'
+                    f'Fine: ৳{b.fine}\n\n'
+                    'Please return it soon.\n\nThank you.'
+                )
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [b.user.email],
+                    fail_silently=False,
+                )
+                count += 1
+            messages.success(request, f'{count} overdue reminders sent successfully.')
+        elif action == 'send_single':
+            borrowing_id = request.POST['borrowing_id']
+            try:
+                b = Borrowing.objects.get(id=borrowing_id, status='issued')
+                subject = 'Overdue Book Reminder - IUBAT Library'
+                message = (
+                    f'Dear {b.user.username},\n\n'
+                    f'The book "{b.book.title}" is overdue.\n'
+                    f'Due Date: {b.due_date}\n'
+                    f'Fine: ৳{b.fine}\n\n'
+                    'Please return it soon.\n\nThank you.'
+                )
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [b.user.email],
+                    fail_silently=False,
+                )
+                messages.success(request, f'Reminder sent to {b.user.username}.')
+            except Borrowing.DoesNotExist:
+                messages.error(request, 'Invalid borrowing record.')
+
+        return redirect('send_overdue_notification')
+
+    context = {'overdue': overdue}
+    return render(request, 'borrowing/send_overdue_notification.html', context)
