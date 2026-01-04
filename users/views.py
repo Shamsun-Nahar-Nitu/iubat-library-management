@@ -51,8 +51,10 @@ def dashboard(request):
     }
     return render(request, 'users/dashboard.html', context)
 
+# ---------------- ADMIN FUNCTIONS ---------------- #
+
 @login_required
-def create_user(request):
+def admin_create_user(request):
     if request.user.role != 'admin':
         messages.error(request, 'Access denied. Only admins can create users.')
         return redirect('home')
@@ -78,12 +80,12 @@ def create_user(request):
             return redirect('home')
         except Exception as e:
             messages.error(request, f'Error creating user: {str(e)}')
-            return redirect('create_user')
+            return redirect('admin_create_user')
 
     return render(request, 'users/create_user.html')
 
 @login_required
-def update_user(request):
+def admin_update_user(request):
     if request.user.role != 'admin':
         messages.error(request, 'Access denied. Only admins can update users.')
         return redirect('home')
@@ -101,16 +103,16 @@ def update_user(request):
             user.is_active = is_active
             user.save()
             messages.success(request, f'User Details Updated for {user.username}')
-            return redirect('update_user')
+            return redirect('admin_update_user')
         except CustomUser.DoesNotExist:
             messages.error(request, 'User not found.')
-            return redirect('update_user')
+            return redirect('admin_update_user')
 
     context = {'users': users}
     return render(request, 'users/update_user.html', context)
 
 @login_required
-def delete_user(request):
+def admin_delete_user(request):
     if request.user.role != 'admin':
         messages.error(request, 'Access denied. Only admins can delete users.')
         return redirect('home')
@@ -130,7 +132,7 @@ def delete_user(request):
                 messages.error(request, 'User not found.')
         else:
             messages.error(request, 'No user selected for deletion.')
-        return redirect('delete_user')
+        return redirect('admin_delete_user')
 
     context = {'users': users}
     return render(request, 'users/delete_user.html', context)

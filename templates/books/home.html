@@ -39,9 +39,9 @@
                 
                 {% if request.user.role == 'admin' %}
                     {% if request.user.role == 'student' or request.user.role == 'faculty' or request.user.role == 'librarian' %} | {% endif %}
-                    <a href="{% url 'create_user' %}">Create User</a>
-                    | <a href="{% url 'update_user' %}">Update User</a>
-                    | <a href="{% url 'delete_user' %}">Delete User</a>
+                    <a href="{% url 'admin_create_user' %}">Create User</a>
+                    | <a href="{% url 'admin_update_user' %}">Update User</a>
+                    | <a href="{% url 'admin_delete_user' %}">Delete User</a>
                 {% endif %}
             </div>
         {% endif %}
