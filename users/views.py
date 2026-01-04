@@ -33,11 +33,13 @@ def dashboard(request):
         messages.error(request, 'Access denied.')
         return redirect('home')
 
+    # Current books: pending + issued
     current = Borrowing.objects.filter(
         user=request.user,
         status__in=['pending', 'issued']
-    ).select_related('book')
+    ).select_related('book').order_by('-borrow_date')
 
+    # History: returned books
     history = Borrowing.objects.filter(
         user=request.user,
         status='returned'
@@ -106,3 +108,29 @@ def update_user(request):
 
     context = {'users': users}
     return render(request, 'users/update_user.html', context)
+
+@login_required
+def delete_user(request):
+    if request.user.role != 'admin':
+        messages.error(request, 'Access denied. Only admins can delete users.')
+        return redirect('home')
+
+    # Exclude superusers to prevent accidental deletion
+    users = CustomUser.objects.exclude(is_superuser=True).order_by('username')
+
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        if user_id:
+            try:
+                user = CustomUser.objects.get(id=user_id)
+                username = user.username
+                user.delete()
+                messages.success(request, f'User {username} Deleted Successfully')
+            except CustomUser.DoesNotExist:
+                messages.error(request, 'User not found.')
+        else:
+            messages.error(request, 'No user selected for deletion.')
+        return redirect('delete_user')
+
+    context = {'users': users}
+    return render(request, 'users/delete_user.html', context)

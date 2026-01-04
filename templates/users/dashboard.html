@@ -16,8 +16,9 @@
             <a href="{% url 'logout' %}" class="btn btn-outline-danger">Logout</a>
         </div>
 
-        {% if borrowings %}
-            <h3 class="mb-3">My Borrowed / Pending Books</h3>
+        <!-- Current Books (Pending + Issued) -->
+        <h3 class="mb-3">Current Books</h3>
+        {% if current %}
             <div class="table-responsive">
                 <table class="table table-striped table-hover">
                     <thead class="table-dark">
@@ -32,20 +33,20 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for b in borrowings %}
+                        {% for b in current %}
                             <tr>
                                 <td>
                                     {% if b.book.cover_page %}
                                         <img src="{{ b.book.cover_page.url }}" style="width:50px; height:70px; object-fit: cover;">
                                     {% else %}
-                                        <img src="https://via.placeholder.com/50x70?text=No+Cover">
+                                        <img src="https://via.placeholder.com/50x70?text=No+Cover" alt="No Cover">
                                     {% endif %}
                                 </td>
                                 <td>{{ b.book.title }}</td>
                                 <td>{{ b.book.author }}</td>
                                 <td>
                                     {% if b.status == 'pending' %}
-                                        <span class="badge bg-warning">Pending</span>
+                                        <span class="badge bg-warning text-dark">Pending</span>
                                     {% elif b.status == 'issued' %}
                                         <span class="badge bg-success">Issued</span>
                                     {% endif %}
@@ -58,16 +59,51 @@
                                         <em>Awaiting issue</em>
                                     {% endif %}
                                 </td>
-                                <td>৳{{ b.fine }}</td>
+                                <td>৳{{ b.fine|default:"0" }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         {% else %}
-            <div class="text-center">
-                <p class="lead">No borrowed or pending books yet.</p>
+            <p class="lead text-center">No borrowed or pending books yet.</p>
+        {% endif %}
+
+        <!-- Borrowing History -->
+        <h3 class="mt-5 mb-3">Borrowing History</h3>
+        {% if history %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Cover</th>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Returned On</th>
+                            <th>Fine Paid</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in history %}
+                            <tr>
+                                <td>
+                                    {% if b.book.cover_page %}
+                                        <img src="{{ b.book.cover_page.url }}" style="width:50px; height:70px; object-fit: cover;">
+                                    {% else %}
+                                        <img src="https://via.placeholder.com/50x70?text=No+Cover" alt="No Cover">
+                                    {% endif %}
+                                </td>
+                                <td>{{ b.book.title }}</td>
+                                <td>{{ b.book.author }}</td>
+                                <td>{{ b.return_date|date:"d M Y" }}</td>
+                                <td>৳{{ b.fine|default:"0" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
+        {% else %}
+            <p class="lead text-center">No borrowing history yet.</p>
         {% endif %}
     </div>
 </body>
