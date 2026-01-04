@@ -35,6 +35,7 @@
                     {% if request.user.role == 'student' or request.user.role == 'faculty' %} | {% endif %}
                     <a href="{% url 'issue_book' %}">Librarian Panel - Issue Books</a>
                     | <a href="{% url 'return_book' %}">Librarian Panel - Return Books</a>
+                    | <a href="{% url 'update_stock' %}">Update Stock</a>
                 {% endif %}
                 
                 {% if request.user.role == 'admin' %}

@@ -132,3 +132,31 @@ def return_book(request):
         'issued_books': issued_books,
     }
     return render(request, 'borrowing/return_book.html', context)
+
+# ---------------- NEW VIEW: Update Stock ---------------- #
+
+@login_required
+def update_stock(request):
+    if request.user.role != 'librarian':
+        messages.error(request, 'Access denied. Only librarians can update stock.')
+        return redirect('home')
+
+    books = Book.objects.all().order_by('title')
+
+    if request.method == 'POST':
+        book_id = request.POST['book_id']
+        new_quantity = int(request.POST['new_quantity'])
+
+        try:
+            book = Book.objects.get(id=book_id)
+            old_qty = book.available
+            book.available = new_quantity
+            book.save()
+            messages.success(request, f'Stock Updated: "{book.title}" quantity changed from {old_qty} to {new_quantity}')
+            return redirect('update_stock')
+        except Book.DoesNotExist:
+            messages.error(request, 'Book not found.')
+            return redirect('update_stock')
+
+    context = {'books': books}
+    return render(request, 'borrowing/update_stock.html', context)

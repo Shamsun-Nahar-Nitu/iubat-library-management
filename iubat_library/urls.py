@@ -6,36 +6,41 @@ from django.conf.urls.static import static
 from books.views import home
 from users.views import (
     user_login, user_logout, dashboard,
-    admin_create_user, admin_update_user, admin_delete_user,  # updated imports
+    admin_create_user, admin_update_user, admin_delete_user,
 )
-from borrowing.views import borrow_request, issue_book, return_book  # Added return_book
-from users.admin import library_admin_site  # Import custom site
+from borrowing.views import (
+    borrow_request, issue_book, return_book, update_stock,
+)
+from users.admin import library_admin_site  # Import custom admin site
 
 urlpatterns = [
-    # Use custom admin site
+    # Custom Admin Panel
     path('admin/', library_admin_site.urls),
-    # path('admin/', admin.site.urls),  # keep commented if using custom site
 
     # Authentication
     path('login/', user_login, name='login'),
     path('logout/', user_logout, name='logout'),
 
-    # User dashboard
+    # User Dashboard
     path('dashboard/', dashboard, name='dashboard'),
 
-    # Borrowing & librarian actions
-    path('borrow/<int:book_id>/', borrow_request, name='borrow_request'),
-    path('librarian/issue/', issue_book, name='issue_book'),
-    path('librarian/return/', return_book, name='return_book'),  # New return page
+    # Book List & Details (home handles list, add book_detail if separate)
+    path('', home, name='home'),
 
-    # Admin tools (renamed functions)
+    # Student Borrow Request
+    path('borrow/<int:book_id>/', borrow_request, name='borrow_request'),
+
+    # Librarian Panels
+    path('librarian/issue/', issue_book, name='issue_book'),
+    path('librarian/return/', return_book, name='return_book'),
+    path('librarian/update-stock/', update_stock, name='update_stock'),
+
+    # Admin Tools (separate from admin panel)
     path('admin-tools/create-user/', admin_create_user, name='admin_create_user'),
     path('admin-tools/update-user/', admin_update_user, name='admin_update_user'),
     path('admin-tools/delete-user/', admin_delete_user, name='admin_delete_user'),
-
-    # Home page
-    path('', home, name='home'),
 ]
 
+# Serve media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
