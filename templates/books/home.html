@@ -8,7 +8,12 @@
 </head>
 <body class="bg-light">
     <div class="container mt-5">
-        <h1 class="text-center mb-4">IUBAT Library</h1>
+        <div class="text-center mb-4">
+            <img src="/static/images/iubat-logo.png" alt="IUBAT Logo" 
+                style="height:50px; vertical-align:middle; margin-right:10px;">
+            <h1 class="d-inline align-middle">IUBAT Library</h1>
+        </div>
+
 
         <!-- Messages (Success/Error from borrow request) -->
         {% if messages %}
@@ -24,7 +29,7 @@
 
         <!-- Welcome message & role-based links -->
         {% if request.user.is_authenticated %}
-            <div class="mb-4 p-3 bg-white rounded shadow-sm">
+            <div class="mb-4 p-3 rounded shadow-sm" style="background-color:#3a635d; color:white;">
                 Logged in as <strong>{{ request.user.get_role_display }}</strong>. 
                 
                 {% if request.user.role == 'student' or request.user.role == 'faculty' %}
