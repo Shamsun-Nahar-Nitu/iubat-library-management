@@ -33,7 +33,7 @@
                 Logged in as <strong>{{ request.user.get_role_display }}</strong>. 
                 
                 {% if request.user.role == 'student' or request.user.role == 'faculty' %}
-                    <a href="{% url 'dashboard' %}">Go to My Dashboard</a>
+                    <a href="{% url 'dashboard' %}" class="btn btn-primary btn-sm" >Go to My Dashboard</a>
                 {% endif %}
                 
                 {% if request.user.role == 'librarian' %}
