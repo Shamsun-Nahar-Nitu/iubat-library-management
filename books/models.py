@@ -18,7 +18,7 @@ class Book(models.Model):
     description = models.TextField(blank=True)
     quantity = models.PositiveIntegerField(default=1)
     available = models.PositiveIntegerField(default=1)  # Tracks available copies
-    cover_page = models.ImageField(upload_to='book_covers/', blank=True, null=True)
+    cover_page = models.ImageField(upload_to='book_covers/', blank=True, null=True)   
     scanned_page = models.FileField(upload_to='scanned_pages/', blank=True, null=True)
     added_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
