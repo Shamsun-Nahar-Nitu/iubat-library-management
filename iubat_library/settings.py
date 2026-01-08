@@ -156,3 +156,6 @@ AUTHENTICATION_BACKENDS = [
 # Email settings for development (prints emails to console)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'library@iubat.edu'
+
+DEBUG = False
+ALLOWED_HOSTS = ['*']  # Change to specific domain later
