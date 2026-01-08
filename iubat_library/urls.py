@@ -3,7 +3,7 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 
-from books.views import home
+from books.views import home, add_book  # add add_book
 from users.views import (
     user_login, user_logout, dashboard,
     admin_create_user, admin_update_user, admin_delete_user,
@@ -17,13 +17,17 @@ urlpatterns = [
     # Custom Admin Panel
     path('admin/', library_admin_site.urls),
 
-    # Home & Authentication
-    path('', home, name='home'),
+    # Authentication
     path('login/', user_login, name='login'),
     path('logout/', user_logout, name='logout'),
+
+    # User Dashboard
     path('dashboard/', dashboard, name='dashboard'),
 
-    # Student Borrowing
+    # Home & Book List
+    path('', home, name='home'),
+
+    # Student Borrow Request
     path('borrow/<int:book_id>/', borrow_request, name='borrow_request'),
 
     # Librarian Panels
@@ -36,6 +40,7 @@ urlpatterns = [
     path('admin-tools/create-user/', admin_create_user, name='admin_create_user'),
     path('admin-tools/update-user/', admin_update_user, name='admin_update_user'),
     path('admin-tools/delete-user/', admin_delete_user, name='admin_delete_user'),
+    path('admin-tools/add-book/', add_book, name='add_book'),  # New path
 
     # Reports
     path('librarian/generate-report/', generate_report, name='generate_report'),
