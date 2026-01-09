@@ -9,27 +9,24 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+
 import os
+import dj_database_url
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-u9m0hs4u)_t5%_s4y4vl4l-u&cs8#)034o#!_ntgbeb^9jmqb2'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'local-fallback-secret-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+#DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'   # Default to True locally
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']  # Added for development
-
+ALLOWED_HOSTS = ['*']  # Render handles hostname
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -50,6 +47,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Added for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -63,7 +61,7 @@ ROOT_URLCONF = 'iubat_library.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # <-- Added: project-level templates folder
+        'DIRS': [BASE_DIR / 'templates'],  # project-level templates folder
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -78,87 +76,58 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'iubat_library.wsgi.application'
 
-
 # Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
 DATABASES = {
-    'default': {
+    'default': dj_database_url.parse(
+        os.environ.get('DATABASE_URL'),
+        conn_max_age=600
+    ) if os.environ.get('DATABASE_URL') else {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
-
 # Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
 # Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'Asia/Dhaka'  # <-- Changed to Bangladesh time (IUBAT location)
-
+TIME_ZONE = 'Asia/Dhaka'  # IUBAT location
 USE_I18N = True
-
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']  # <-- Added: project-level static folder
-STATIC_ROOT = BASE_DIR / 'staticfiles'    # For collectstatic later
+STATICFILES_DIRS = [BASE_DIR / 'static']  # project-level static folder
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Media files (uploaded book covers, scanned pages)
-MEDIA_URL = '/media/'                     # <-- Added
-MEDIA_ROOT = BASE_DIR / 'media'           # <-- Added
-
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.environ.get('MEDIA_ROOT', BASE_DIR / 'media')
 
 # Crispy Forms template pack
-CRISPY_TEMPLATE_PACK = 'bootstrap4'       # <-- Added (we use Bootstrap 4)
-
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 # Login settings
-LOGIN_URL = 'login'                       # <-- Added
-LOGIN_REDIRECT_URL = 'home'               # <-- Added
-LOGOUT_REDIRECT_URL = 'login'             # <-- Added
-
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = 'login'
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'users.CustomUser'
-# Authentication backends for custom user model
+
+# Authentication backends
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-
-DEBUG = True
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '*'] # Change to specific domain later
-
-
-
 # Email settings for development (prints emails to console)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'library@iubat.edu'
+DEFAULT_FROM_EMAIL = 'library@example.com'
