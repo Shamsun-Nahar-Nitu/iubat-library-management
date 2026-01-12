@@ -55,33 +55,45 @@ https://github.com/user-attachments/assets/d889fd12-4ce6-4d09-ace4-ef46503b6faa
 
 ## 🚀 Local Installation Guide (Step-by-Step)
 
+### 🔹 1. Clone the repository
 ```bash
-# 1. Clone the repository
 git clone https://github.com/Shamsun-Nahar-Nitu/iubat-library-management.git
 cd iubat-library-management
-
-# 2. Create & activate virtual environment
+```
+### 🔹 2. Create & activate virtual environment
+```bash
+# Windows
 python -m venv venv
-# Windows:
 venv\Scripts\activate
-# Linux/Mac:
+
+# Linux/Mac
+python -m venv venv
 source venv/bin/activate
-
-# 3. Install all dependencies
+```
+### 🔹 3. Install all dependencies
+```bash
 pip install -r requirements.txt
-
-# 4. Apply database migrations
+```
+### 🔹 4. Apply database migrations
+```bash
 python manage.py migrate
+```
+### 🔹 5. Create superuser (admin account)
+```bash
+python manage.py migrate
+```
+👉 Follow prompts: username (e.g. admin_nitu), email, password
 
-# 5. Create superuser (admin account)
-python manage.py createsuperuser
-# Follow prompts: username (e.g. admin_nitu), email, password
-
-# 6. Run the development server
+### 🔹 6. Run the development server
+```bash
 python manage.py runserver
+```
+🌐 Open browser → http://127.0.0.1:8000/
+### 📂 Project Structure Overview
 
-Open browser → http://127.0.0.1:8000/
-📂 Project Structure Overview
+## 📂 Project Structure Overview
+
+```text
 iubat_library_project/
 ├── iubat_library/          # Project settings, urls, wsgi
 ├── users/                  # Custom user, login, dashboard, admin tools
@@ -93,12 +105,10 @@ iubat_library_project/
 ├── manage.py
 ├── requirements.txt
 └── README.md
-
-Acknowledgments & Notes
+```
+### Acknowledgments & Notes
 This project was a complete learning journey — handling custom user roles, file uploads, permissions, real-time calculations, and beautiful UI design.
 Special thanks to Django documentation, Bootstrap community, Stack Overflow, and every late-night debugging session 💻
-© 2026 Shamsun Nahar Nitu
+
+© 2026 Shamsun Nahar Nitu  
 Feedback & suggestions are always welcome 🚀
-
-
-
