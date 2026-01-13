@@ -10,28 +10,21 @@ This project implements almost all major functionalities required in a modern un
 https://github.com/user-attachments/assets/189a35b9-8cce-4d43-8bbc-47d99af433b8
 ### ✨ All Implemented Features (from Requirement CSV)
 
-| Functionality                          | Input                                                                                  | Output / Result                                      |
-|----------------------------------------|----------------------------------------------------------------------------------------|------------------------------------------------------|
-| **Admin Add the Book Information**     | Book Title, Cover Page, Category, Price, Description, Quantity                         | Confirmation MSG or Error MSG                        |
-| **Click to add book to the Book List** | Add Button                                                                             | Confirmation MSG or Error MSG                        |
-| **User/Admin Login**                   | Username/Email, Password, Role Selection                                               | Redirect to Dashboard or "Invalid Credentials" Error |
-| **Search for Books**                   | Keywords (Title, Author, ISBN)                                                         | Filtered book list                                   |
-| **Filter Book Results**                | Select Category or Availability Status                                                 | Updated/Narrowed Book List                           |
-| **View Book Details**                  | Click on Book Title/Image                                                              | Display Full Details (Author, Location, etc.)        |
-| **Request to Borrow Book (Student)**   | Click "Request Borrow" Button                                                          | "Request Pending" Notification or "Limit Reached" Error |
-| **View User Dashboard**                | Click "My Dashboard"                                                                   | Shows Due Dates, Pending/Issued Books, Fines         |
-| **Librarian Issue Book (Check-out)**   | Scan User ID, Scan Book Barcode                                                        | "Book Issued Successfully" MSG & Update Inventory    |
-| **Return Book (Check-in)**             | Scan Book Barcode/Enter Book ID                                                        | "Return Successful" MSG & Update Inventory           |
-| **View Borrowing History**             | Click "My History" Tab                                                                 | List of previously borrowed and returned items       |
-| **Check Overdue Status**               | System Date Check (Automated) or Click "Overdue List"                                  | List of Users with overdue books and fine amounts    |
-| **Admin Create User Account**          | Name, ID, Email, Role, Password                                                        | "Account Created Successfully" MSG                   |
-| **Admin Update User Account**          | Select User, Edit Details (Role, Status)                                               | "User Details Updated" MSG                           |
-| **Admin Delete User Account**          | Select User ID, Click Delete, Confirm                                                  | "User Deleted" MSG                                   |
-| **Admin Configure Settings**           | Loan Duration Days, Fine Amount per Day                                                | "System Settings Saved" MSG                          |
-| **Librarian Update Stock**             | Select Book, Enter New Quantity                                                        | "Stock Updated" MSG                                  |
-| **Send Overdue Notification**          | Select User or Click "Send All Reminders"                                              | Email/System Notification sent to User               |
-| **Generate Library Report**            | Select Date Range, Report Type (Borrowing/Stock)                                       | Downloadable Excel File                              |
-| **Logout**                             | Click "Logout" Button                                                                  | Redirect to Login Page                               |
+| # | Functionality                          | Input / Action                                                                 | Output / Result                                      |
+|---|----------------------------------------|--------------------------------------------------------------------------------|------------------------------------------------------|
+| 1 | **Admin Add Book**                     | Book Title, Cover Page, Category, Price, Description, Quantity                 | Success message + Book appears in list with cover   |
+| 2 | **Admin Create/Update/Delete User**    | Username, Email, Role, Student ID (for students), Password                     | Confirmation message, user added/updated/deleted     |
+| 3 | **User/Admin Login**                   | Username/Email + Password + Role selection                                     | Redirect to home/dashboard or "Invalid Credentials"  |
+| 4 | **Search & Filter Books**              | Keywords (Title/Author/ISBN), Category filter                                  | Updated book list                                    |
+| 5 | **View Book Details**                  | Click on book title or cover                                                   | Full details (author, description, availability)     |
+| 6 | **Student Borrow Request**             | Click "Request Borrow" button on book card                                     | "Request Pending" or "Limit Reached" message         |
+| 7 | **User Dashboard**                     | Click "My Dashboard"                                                           | Shows current/pending books, due dates, fines        |
+| 8 | **Librarian Issue Book**               | Scan/Select user + book                                                        | "Book Issued Successfully" + inventory update        |
+| 9 | **Librarian Return Book**              | Scan/Enter book ID                                                             | "Return Successful" + fine calculation if overdue    |
+|10 | **Borrowing History**                  | Click "My History"                                                             | List of previously borrowed & returned books         |
+|11 | **Overdue Status & Notification**      | Automated check or manual "Send All Reminders"                                 | List of overdue + email/console notifications        |
+|12 | **Generate Library Report**            | Select date range + report type (Borrowing/Stock)                              | Downloadable Excel file                              |
+|13 | **Logout**                             | Click "Logout" button                                                          | Redirect to login page                               |
 
 ### 🖼️ Screenshots
 
@@ -92,17 +85,82 @@ python manage.py runserver
 ### 📂 Project Structure Overview
 
 ```text
-iubat_library_project/
-├── iubat_library/          # Project settings, urls, wsgi
-├── users/                  # Custom user, login, dashboard, admin tools
-├── books/                  # Book model, home page, add book
-├── borrowing/              # Borrow request, issue/return, reports, notifications
-├── templates/              # All HTML templates (organized by app)
-├── static/                 # CSS, JS, images (logo)
-├── media/                  # Uploaded book covers (book_covers/)
-├── manage.py
-├── requirements.txt
-└── README.md
+iubat_library_project/                  ← Project root folder 
+│
+├── db.sqlite3                          ← Local SQLite database (ignored in .gitignore)
+├── manage.py                           ← Django management script
+│
+├── iubat_library/                      ← Main project package (settings, urls, wsgi, asgi)
+│   ├── __init__.py
+│   ├── asgi.py
+│   ├── settings.py                     ← All project settings (DEBUG, apps, media/static, etc.)
+│   ├── urls.py                         ← Main URL routing (includes admin + app urls)
+│   └── wsgi.py
+│
+├── static/                             ← Project-level static files (CSS, JS, images)
+│   └── images/
+│       └── iubat-logo.png              ← Logo used in header
+│
+├── media/                              ← Uploaded user files (book covers, etc.)
+│   └── book_covers/                    ← Where cover_page images are saved
+│
+├── templates/                          ← Project-level templates
+│   └── admin/                          ← Custom admin templates
+│       └── base_site.html              
+│
+├── requirements.txt                    ← All Python dependencies
+│
+├── users/                              ← App: User management & authentication
+│   ├── __init__.py
+│   ├── admin.py                        ← Custom admin for CustomUser
+│   ├── apps.py
+│   ├── migrations/
+│   ├── models.py                       ← CustomUser model (role, student_id, etc.)
+│   ├── views.py                        ← login, logout, dashboard, admin tools
+│   ├── templates/
+│   │   └── users/
+│   │       ├── login.html
+│   │       ├── dashboard.html
+│   │       ├── create_user.html
+│   │       ├── update_user.html
+│   │       └── delete_user.html
+│   └── urls.py                        
+│
+├── books/                              ← App: Book & Category management
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations/
+│   ├── models.py                       ← Book & Category models
+│   ├── views.py                        ← home, add_book
+│   ├── templates/
+│   │   └── books/
+│   │       ├── home.html               ← Main book listing page
+│   │       └── add_book.html           ← Admin add book form
+│   └── urls.py                       
+│
+├── borrowing/                          ← App: Borrowing, issuing, returning, reports
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations/
+│   ├── models.py                       ← Borrowing model
+│   ├── views.py                        ← borrow_request, issue_book, return_book,
+│   │                                     update_stock, send_overdue_notification,
+│   │                                     generate_report, etc.
+│   ├── templates/
+│   │   └── borrowing/
+│   │       ├── issue_book.html
+│   │       ├── return_book.html
+│   │       ├── update_stock.html
+│   │       ├── send_overdue_notification.html
+│   │       └── generate_report.html
+│   └── urls.py                         
+│
+├── venv/                               ← Virtual environment (ignored in .gitignore)
+│
+├── .gitignore                          ← Ignore venv, __pycache__, *.pyc, db.sqlite3, media/
+└── README.md                           ← Project documentation
 ```
 ### Acknowledgments & Notes
 This project was a complete learning journey — handling custom user roles, file uploads, permissions, real-time calculations, and beautiful UI design.
