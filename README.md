@@ -6,11 +6,9 @@ This project implements almost all major functionalities required in a modern un
 
 **Project Status:** Fully functional locally — all CSV functionalities completed!
 
-## 🎥 Project Showcase Video
-
-https://github.com/user-attachments/assets/d889fd12-4ce6-4d09-ace4-ef46503b6faa
-
-## ✨ All Implemented Features (from Requirement CSV)
+### 🎥 Project Showcase Video
+https://github.com/user-attachments/assets/189a35b9-8cce-4d43-8bbc-47d99af433b8
+### ✨ All Implemented Features (from Requirement CSV)
 
 | Functionality                          | Input                                                                                  | Output / Result                                      |
 |----------------------------------------|----------------------------------------------------------------------------------------|------------------------------------------------------|
@@ -35,16 +33,16 @@ https://github.com/user-attachments/assets/d889fd12-4ce6-4d09-ace4-ef46503b6faa
 | **Generate Library Report**            | Select Date Range, Report Type (Borrowing/Stock)                                       | Downloadable Excel File                              |
 | **Logout**                             | Click "Logout" Button                                                                  | Redirect to Login Page                               |
 
-## 🖼️ Screenshots
+### 🖼️ Screenshots
 
-###  Homepage – Book Cards with Search & Filter
+#####  Homepage – Book Cards with Search & Filter
 ![Admin_Panel_Home](https://github.com/user-attachments/assets/7718709f-7702-4e44-9efe-bfcf8cc9bdc0)
-###  Admin Add Book Form – Upload Cover, Details
+#####  Admin Add Book Form – Upload Cover, Details
 ![Admin_Panel_AddBook](https://github.com/user-attachments/assets/2a2037d1-d8e6-4042-8b37-85d6c81ddc2c)
-###  Student Dashboard – Current & History Books
+#####  Student Dashboard – Current & History Books
 ![Student_Panel_Dashboard](https://github.com/user-attachments/assets/871548d7-db0e-402c-8a4e-28af2bcf2911)
 
-## 🛠️ Tech Stack
+### 🛠️ Tech Stack
 
 - **Backend** → Django 5.2.9  
 - **Frontend** → Bootstrap 5.3 + Bootstrap Icons  
@@ -53,14 +51,14 @@ https://github.com/user-attachments/assets/d889fd12-4ce6-4d09-ace4-ef46503b6faa
 - **Reports** → openpyxl (Excel generation)  
 - **Forms & Filters** → crispy-forms, django-filter  
 
-## 🚀 Local Installation Guide (Step-by-Step)
+### 🚀 Local Installation Guide (Step-by-Step)
 
-### 🔹 1. Clone the repository
+##### 🔹 1. Clone the repository
 ```bash
 git clone https://github.com/Shamsun-Nahar-Nitu/iubat-library-management.git
 cd iubat-library-management
 ```
-### 🔹 2. Create & activate virtual environment
+##### 🔹 2. Create & activate virtual environment
 ```bash
 # Windows
 python -m venv venv
@@ -70,28 +68,28 @@ venv\Scripts\activate
 python -m venv venv
 source venv/bin/activate
 ```
-### 🔹 3. Install all dependencies
+##### 🔹 3. Install all dependencies
 ```bash
 pip install -r requirements.txt
 ```
-### 🔹 4. Apply database migrations
+##### 🔹 4. Apply database migrations
 ```bash
 python manage.py migrate
 ```
-### 🔹 5. Create superuser (admin account)
+##### 🔹 5. Create superuser (admin account)
 ```bash
 python manage.py migrate
 ```
-👉 Follow prompts: username (e.g. admin_nitu), email, password
+Follow prompts: username (e.g. admin_nitu), email, password
 
-### 🔹 6. Run the development server
+##### 🔹 6. Run the development server
 ```bash
 python manage.py runserver
 ```
 🌐 Open browser → http://127.0.0.1:8000/
-### 📂 Project Structure Overview
 
-## 📂 Project Structure Overview
+
+### 📂 Project Structure Overview
 
 ```text
 iubat_library_project/
